@@ -6,4 +6,4 @@ __pycache__
 logs
 *.py[cod]
 .env
-
+vendor

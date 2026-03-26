@@ -65,7 +65,7 @@ python -m src.main
 ## Docker
 
 Redis в `docker-compose.yml` не поднимается, используется уже запущенный внешний Redis.
-Пакеты `easy_logging`, `quotes`, `spreads` берутся из директории `vendor/`.
+Зависимости устанавливаются во время `docker build`.
 
 1. Сборка и запуск:
 

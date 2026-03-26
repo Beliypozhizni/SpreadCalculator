@@ -1,6 +1,6 @@
 [project]
 name = "spreadcalculator"
-version = "1.0.0"
+version = "1.0.1"
 description = ""
 authors = [
     {name = "Beliy",email = "beliypozhizni@gmail.com"}
