@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import redis.asyncio as redis
 from quotes import Quote, quote_from_redis
 
@@ -40,7 +42,8 @@ class QuoteStorage:
         quotes: dict[str, Quote] = {}
         for asset_id, payload in raw_quotes.items():
             try:
-                quotes[asset_id] = quote_from_redis(asset_id=asset_id, payload=payload)
+                normalized_payload = self._normalize_quote_payload(payload)
+                quotes[asset_id] = quote_from_redis(asset_id=asset_id, payload=normalized_payload)
             except Exception as exc:
                 logger.warning(
                     "Failed to parse quote from Redis: exchange=%s asset_id=%s error=%s",
@@ -49,6 +52,18 @@ class QuoteStorage:
                     exc,
                 )
         return quotes
+
+    @staticmethod
+    def _normalize_quote_payload(payload: str) -> dict[str, object]:
+        data = json.loads(payload)
+        if not isinstance(data, dict):
+            raise ValueError("quote payload must be a JSON object")
+
+        if "withdraw_status" not in data:
+            data["withdraw_status"] = data.get("is_withdraw_enabled", False)
+        if "deposit_status" not in data:
+            data["deposit_status"] = data.get("is_deposit_enabled", False)
+        return data
 
     async def read_events(self, last_id: str, block_ms: int, count: int) -> list[tuple[str, dict[str, str]]]:
         events = await self._redis.xread(

@@ -27,6 +27,7 @@ async def async_main() -> None:
 
     service = SpreadService(
         exchanges=config.exchanges,
+        quote_updated_type=config.quote_updated_type,
         quote_storage=quote_storage,
         spread_storage=spread_storage,
     )

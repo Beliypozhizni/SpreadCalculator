@@ -40,6 +40,7 @@ class AppConfig:
     exchanges: tuple[str, ...]
     quote_key_prefix: str
     quote_events_key: str
+    quote_updated_type: str
     spread_key_prefix: str
     spread_events_key: str
     stream_block_ms: int
@@ -58,6 +59,7 @@ def load_config(env_file: str = ".env") -> AppConfig:
         exchanges=_get_exchanges("SPREAD_EXCHANGES"),
         quote_key_prefix=os.getenv("QUOTE_KEY_PREFIX", "quotes"),
         quote_events_key=os.getenv("QUOTE_EVENTS_KEY", "quotes:events"),
+        quote_updated_type=os.getenv("QUOTE_UPDATED_TYPE", "quotes_updated"),
         spread_key_prefix=os.getenv("SPREAD_KEY_PREFIX", "spreads"),
         spread_events_key=os.getenv("SPREAD_EVENTS_KEY", "spreads:events"),
         stream_block_ms=_get_int("STREAM_BLOCK_MS", 5000),

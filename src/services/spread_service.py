@@ -14,10 +14,12 @@ class SpreadService:
     def __init__(
         self,
         exchanges: tuple[str, ...],
+        quote_updated_type: str,
         quote_storage: QuoteStorage,
         spread_storage: SpreadStorage,
     ) -> None:
         self._exchanges = exchanges
+        self._quote_updated_type = quote_updated_type.strip().lower()
         self._quote_storage = quote_storage
         self._spread_storage = spread_storage
 
@@ -42,11 +44,31 @@ class SpreadService:
                 continue
 
             last_id = events[-1][0]
-            logger.debug("Received %s quote events, recalculating spreads", len(events))
+            trigger_count = sum(1 for _, payload in events if self._is_batch_update_event(payload))
+            if trigger_count == 0:
+                logger.debug(
+                    "Received %s quote events, no batch event with type=%s",
+                    len(events),
+                    self._quote_updated_type,
+                )
+                continue
+
+            logger.debug(
+                "Received %s quote events (%s matched type=%s), recalculating spreads",
+                len(events),
+                trigger_count,
+                self._quote_updated_type,
+            )
             try:
                 await self.recalculate_all()
             except Exception:
                 logger.exception("Spread recalculation failed after quote event batch")
+
+    def _is_batch_update_event(self, payload: Mapping[str, str]) -> bool:
+        event_type = payload.get("type")
+        if not isinstance(event_type, str):
+            return False
+        return event_type.strip().lower() == self._quote_updated_type
 
     async def _load_quotes(self) -> dict[str, dict[str, Quote]]:
         loaded_quotes = await asyncio.gather(
