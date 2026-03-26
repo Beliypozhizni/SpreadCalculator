@@ -1,0 +1,7 @@
+services:
+  spread-calculator:
+    build: .
+    container_name: spread-calculator
+    restart: unless-stopped
+    env_file:
+      - .env
