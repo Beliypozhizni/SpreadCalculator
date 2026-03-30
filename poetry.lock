@@ -221,7 +221,7 @@ xxhash = ["xxhash (>=3.6.0,<3.7.0)"]
 
 [[package]]
 name = "spreads-detector-schemas"
-version = "1.0.0"
+version = "1.0.1"
 description = "Shared quote and spread schemas for microservices."
 optional = false
 python-versions = ">=3.13"
@@ -235,8 +235,8 @@ pydantic = ">=2.12.5,<3.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/Beliypozhizni/SpreadsDetectorSchemas.git"
-reference = "v.1.0.0"
-resolved_reference = "b740658fe4da5796ab8a7579fba0eeec658e0071"
+reference = "v.1.0.1"
+resolved_reference = "2735b0112df8f913db59ca66a14f1ffc7871dc65"
 
 [[package]]
 name = "typing-extensions"
@@ -268,4 +268,4 @@ typing-extensions = ">=4.12.0"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13"
-content-hash = "e3c51f232bf7c6045e1cb0eb450027d417b889a388249896002e09869acbd1b5"
+content-hash = "d7196ccb8f66b9012ca3d31a072d9bab5d0a12febe8ac44359d58f7cb5e29c07"
