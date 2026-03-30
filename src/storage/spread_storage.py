@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 import redis.asyncio as redis
 from spreads import Spread
@@ -39,6 +39,45 @@ class SpreadStorage:
         async for key in self._redis.scan_iter(match=f"{self._key_prefix}:*:*"):
             keys.append(key)
         return keys
+
+    async def get_ts_found_by_pair(
+        self,
+        exchange_pairs: Iterable[tuple[str, str]] | None = None,
+    ) -> dict[tuple[str, str], dict[str, int]]:
+        if exchange_pairs is None:
+            keys_to_load = await self.list_spread_keys()
+        else:
+            keys_to_load = [
+                self.spreads_key(exchange_buy, exchange_sell)
+                for exchange_buy, exchange_sell in exchange_pairs
+            ]
+
+        if not keys_to_load:
+            return {}
+
+        async with self._redis.pipeline(transaction=False) as pipeline:
+            for key in keys_to_load:
+                pipeline.hgetall(key)
+            loaded = await pipeline.execute()
+
+        ts_found_by_pair: dict[tuple[str, str], dict[str, int]] = {}
+        for redis_key, spread_mapping in zip(keys_to_load, loaded, strict=True):
+            if not spread_mapping:
+                continue
+
+            exchange_buy, exchange_sell = redis_key.split(":")[-2:]
+            pair_ts_found: dict[str, int] = {}
+            for asset_id, payload in spread_mapping.items():
+                try:
+                    spread = Spread.model_validate_json(payload)
+                except Exception:
+                    continue
+                pair_ts_found[asset_id] = spread.ts_found
+
+            if pair_ts_found:
+                ts_found_by_pair[(exchange_buy, exchange_sell)] = pair_ts_found
+
+        return ts_found_by_pair
 
     async def sync(self, spreads_by_pair: Mapping[tuple[str, str], Mapping[str, Spread]]) -> None:
         desired_keys = {

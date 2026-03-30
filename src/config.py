@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal, cast
 
 from dotenv import load_dotenv
 
@@ -25,6 +26,16 @@ def _get_exchanges(name: str) -> tuple[str, ...]:
     return exchanges
 
 
+def _get_spread_match_mode(name: str, default: str) -> Literal["address_network", "address"]:
+    raw_value = os.getenv(name, default)
+    normalized = raw_value.strip().lower()
+    if normalized not in {"address_network", "address"}:
+        raise ValueError(
+            f"Environment variable {name} must be one of: address_network, address"
+        )
+    return cast(Literal["address_network", "address"], normalized)
+
+
 @dataclass(frozen=True, slots=True)
 class RedisConfig:
     host: str
@@ -43,6 +54,7 @@ class AppConfig:
     quote_updated_type: str
     spread_key_prefix: str
     spread_events_key: str
+    spread_match_mode: Literal["address_network", "address"]
     stream_block_ms: int
     stream_batch_size: int
     stream_max_len: int
@@ -62,6 +74,7 @@ def load_config(env_file: str = ".env") -> AppConfig:
         quote_updated_type=os.getenv("QUOTE_UPDATED_TYPE", "quotes_updated"),
         spread_key_prefix=os.getenv("SPREAD_KEY_PREFIX", "spreads"),
         spread_events_key=os.getenv("SPREAD_EVENTS_KEY", "spreads:events"),
+        spread_match_mode=_get_spread_match_mode("SPREAD_MATCH_MODE", "address_network"),
         stream_block_ms=_get_int("STREAM_BLOCK_MS", 5000),
         stream_batch_size=_get_int("STREAM_BATCH_SIZE", 100),
         stream_max_len=_get_int("STREAM_MAX_LEN", 10_000),
